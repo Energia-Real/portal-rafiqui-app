@@ -9,9 +9,10 @@ export default function Home() {
     {
       icon: <Recycle className="text-primary-400" size={32} />,
       title: 'Dona tus Paneles',
-      description: 'Solicita recolección gratuita de paneles solares en desuso.',
+      description: 'Solicita la recolección de paneles solares en desuso.',
       href: '/donar',
       color: 'primary',
+      comingSoon: false,
     },
     {
       icon: <ShoppingBag className="text-accent-400" size={32} />,
@@ -19,6 +20,7 @@ export default function Home() {
       description: 'Compra materiales reciclados y obras de arte únicas.',
       href: '/market',
       color: 'accent',
+      comingSoon: true,
     },
     {
       icon: <BarChart3 className="text-primary-400" size={32} />,
@@ -26,6 +28,7 @@ export default function Home() {
       description: 'Visualiza tu contribución al medio ambiente.',
       href: '/dashboard',
       color: 'primary',
+      comingSoon: true,
     },
   ];
 
@@ -100,9 +103,6 @@ export default function Home() {
               Solicitar Recolección
               <ArrowRight size={18} />
             </Link>
-            <Link href="/market" className="btn-outline flex items-center justify-center gap-2">
-              Explorar Marketplace
-            </Link>
           </motion.div>
         </div>
       </section>
@@ -160,25 +160,36 @@ export default function Home() {
                 transition={{ duration: 0.5, delay: index * 0.1 }}
                 viewport={{ once: true }}
               >
-                <Link href={feature.href} className="block group">
-                  <div className={`card h-full ${feature.color === 'accent' ? 'card-art' : ''}`}>
+                {feature.comingSoon ? (
+                  <div className={`card h-full opacity-60 cursor-not-allowed relative ${feature.color === 'accent' ? 'card-art' : ''}`}>
+                    <span className="absolute top-4 right-4 text-[10px] bg-amber-500/20 text-amber-400 border border-amber-500/30 px-2 py-0.5 rounded-full font-semibold">
+                      Próximamente
+                    </span>
                     <div className={`inline-flex p-3 rounded-xl mb-4 ${
                       feature.color === 'accent' ? 'bg-accent-500/10' : 'bg-primary-500/10'
                     }`}>
                       {feature.icon}
                     </div>
-                    <h3 className="text-xl font-semibold text-white mb-2 group-hover:text-primary-400 transition-colors">
-                      {feature.title}
-                    </h3>
+                    <h3 className="text-xl font-semibold text-white mb-2">{feature.title}</h3>
                     <p className="text-dark-400 mb-4">{feature.description}</p>
-                    <span className={`inline-flex items-center gap-2 text-sm font-medium ${
-                      feature.color === 'accent' ? 'text-accent-400' : 'text-primary-400'
-                    }`}>
-                      Explorar
-                      <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
-                    </span>
                   </div>
-                </Link>
+                ) : (
+                  <Link href={feature.href} className="block group">
+                    <div className="card h-full hover:-translate-y-2 hover:shadow-xl hover:shadow-primary-500/15 transition-all duration-300">
+                      <div className="inline-flex p-3 rounded-xl mb-4 bg-primary-500/10">
+                        {feature.icon}
+                      </div>
+                      <h3 className="text-xl font-semibold text-white mb-2 group-hover:text-primary-400 transition-colors">
+                        {feature.title}
+                      </h3>
+                      <p className="text-dark-400 mb-4">{feature.description}</p>
+                      <span className="inline-flex items-center gap-2 text-sm font-medium text-primary-400">
+                        Explorar
+                        <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
+                      </span>
+                    </div>
+                  </Link>
+                )}
               </motion.div>
             ))}
           </div>

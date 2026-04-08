@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { dashboardApi, DashboardMetrics } from '@/lib/api';
 
 export function useDashboardMetrics() {
@@ -6,6 +6,7 @@ export function useDashboardMetrics() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const fetchedRef = useRef(false);
   useEffect(() => {
     const fetchMetrics = async () => {
       setIsLoading(true);
@@ -31,11 +32,11 @@ export function useDashboardMetrics() {
       }
     };
 
+    if (fetchedRef.current) return;
+    fetchedRef.current = true;
     fetchMetrics();
 
-    // Refrescar cada 5 minutos
     const interval = setInterval(fetchMetrics, 5 * 60 * 1000);
-
     return () => clearInterval(interval);
   }, []);
 

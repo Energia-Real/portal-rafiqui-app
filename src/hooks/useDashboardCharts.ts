@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { dashboardApi, DashboardCharts } from '@/lib/api';
 
 export function useDashboardCharts() {
@@ -6,6 +6,7 @@ export function useDashboardCharts() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const fetchedRef = useRef(false);
   useEffect(() => {
     const fetchCharts = async () => {
       setIsLoading(true);
@@ -31,11 +32,11 @@ export function useDashboardCharts() {
       }
     };
 
+    if (fetchedRef.current) return;
+    fetchedRef.current = true;
     fetchCharts();
 
-    // Refrescar cada 5 minutos
     const interval = setInterval(fetchCharts, 5 * 60 * 1000);
-
     return () => clearInterval(interval);
   }, []);
 

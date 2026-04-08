@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { statisticsApi, DashboardStats, ESGMetrics, MonthlyData, MaterialDistribution } from '@/lib/api';
 import { esgMetrics as mockESG, monthlyData as mockMonthly, impactDistribution as mockDistribution } from '@/data/dashboardData';
 
@@ -63,7 +63,10 @@ export function useDashboardData(): UseDashboardDataReturn {
     }
   };
 
+  const fetchedRef = useRef(false);
   useEffect(() => {
+    if (fetchedRef.current) return;
+    fetchedRef.current = true;
     fetchData();
   }, []);
 

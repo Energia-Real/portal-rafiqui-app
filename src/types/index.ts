@@ -1,4 +1,4 @@
-export type UserRole = 'GUEST' | 'DONOR' | 'PARTNER';
+export type UserRole = 'GUEST' | 'DONOR' | 'COLLECTOR' | 'INSPECTOR' | 'REFURBISHER' | 'ARTIST' | 'BUYER' | 'ADMIN' | 'PARTNER';
 
 export interface User {
   id: string;
@@ -6,6 +6,8 @@ export interface User {
   email: string;
   role: UserRole;
   avatar?: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface CollectionRequest {

@@ -40,17 +40,65 @@ export async function apiRequest<T>(
   }
 }
 
+// Auth API
+export interface LoginResponse {
+  access_token: string;
+  user: {
+    id: string;
+    email: string;
+    role: 'DONOR' | 'COLLECTOR' | 'INSPECTOR' | 'REFURBISHER' | 'ARTIST' | 'BUYER' | 'ADMIN';
+    name: string;
+    createdAt: string;
+    updatedAt: string;
+  };
+}
+
+export const authApi = {
+  login: (email: string, password: string) =>
+    apiRequest<LoginResponse>('/auth/login', {
+      method: 'POST',
+      body: JSON.stringify({ email, password }),
+    }),
+};
+
 // Collection Requests API
+export interface PanelEntry {
+  quantity: number;
+  brand: string;
+  model: string;
+  catalogId?: string;
+  isCustom: boolean;
+  customBrand?: string;
+  customModel?: string;
+}
+
 export interface CreateCollectionRequestDto {
   donorId?: string;
   pickupAddress: string;
+  street: string;
+  exteriorNumber: string;
+  interiorNumber?: string;
+  colonia: string;
+  municipio: string;
+  estado: string;
   city: string;
   postalCode: string;
   estimatedCount: number;
   panelType: 'residential' | 'industrial';
+  panels: PanelEntry[];
+  partnerId?: string;
+  wantsToBePartner?: boolean;
   contactName: string;
   contactPhone: string;
   notes?: string;
+}
+
+export interface CollectionRequestPanel {
+  id: string;
+  quantity: number;
+  brand: string;
+  model: string;
+  isCustom: boolean;
 }
 
 export interface CollectionRequest {
@@ -59,6 +107,16 @@ export interface CollectionRequest {
   estimatedCount: number;
   status: string;
   createdAt: string;
+  contactName?: string;
+  contactPhone?: string;
+  wantsToBePartner?: boolean;
+  partnerId?: string;
+  panelType?: 'residential' | 'industrial';
+  panels?: CollectionRequestPanel[];
+  partner?: {
+    id: string;
+    name: string;
+  };
   donor?: {
     id: string;
     name: string;
@@ -73,11 +131,98 @@ export const collectionRequestsApi = {
       body: JSON.stringify(data),
     }),
 
-  getById: (id: string) =>
-    apiRequest<CollectionRequest>(`/collection-requests/${id}`),
+  getById: (id: string, token?: string) =>
+    apiRequest<CollectionRequest>(`/collection-requests/${id}`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    }),
+
+  getAll: (token?: string) =>
+    apiRequest<CollectionRequest[]>('/collection-requests', {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    }),
+
+  updateStatus: (id: string, status: string, token: string) =>
+    apiRequest<CollectionRequest>(`/collection-requests/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ status }),
+      headers: { Authorization: `Bearer ${token}` },
+    }),
+};
+
+// Solar Panel Catalog API
+export interface SolarPanelModel {
+  id: string;
+  model: string;
+  technology: string;
+  powerWp: number;
+  efficiencyPercent: number;
+  application: string;
+}
+
+export interface SolarPanelCatalog extends SolarPanelModel {
+  brand: string;
+  vocV: number | null;
+  iscA: number | null;
+  vmppV: number | null;
+  imppA: number | null;
+  lengthMm: number | null;
+  widthMm: number | null;
+  thicknessMm: number | null;
+  weightKg: number | null;
+  cellCount: number | null;
+  tempCoefPmax: number | null;
+  operatingTempMin: number | null;
+  operatingTempMax: number | null;
+  productWarrantyYears: number | null;
+  performanceWarrantyYears: number | null;
+  performanceWarrantyPercent: number | null;
+  fireClass: string | null;
+  certifications: string | null;
+  country: string;
+  tier: number;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export const solarPanelCatalogApi = {
+  getBrands: () =>
+    apiRequest<string[]>('/solar-panels/brands'),
+
+  getModelsByBrand: (brand: string) =>
+    apiRequest<SolarPanelModel[]>(`/solar-panels/models/${encodeURIComponent(brand)}`),
 
   getAll: () =>
-    apiRequest<CollectionRequest[]>('/collection-requests'),
+    apiRequest<SolarPanelCatalog[]>('/solar-panels'),
+
+  getById: (id: string) =>
+    apiRequest<SolarPanelCatalog>(`/solar-panels/${id}`),
+};
+
+// Partners API
+export interface Partner {
+  id: string;
+  name: string;
+  slug: string;
+  type: string;
+  status: string;
+  contactName: string | null;
+  contactEmail: string | null;
+  contactPhone: string | null;
+  address: string | null;
+  city: string | null;
+  state: string | null;
+  country: string | null;
+  postalCode: string | null;
+  website: string | null;
+  logoUrl: string | null;
+  description: string | null;
+  isActive: boolean;
+}
+
+export const partnersApi = {
+  getAll: () =>
+    apiRequest<Partner[]>('/partners'),
 };
 
 // Market API Types

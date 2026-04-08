@@ -8,8 +8,8 @@ export default function DonarPage() {
   const benefits = [
     {
       icon: <Truck className="text-primary-400" size={24} />,
-      title: 'Recolección Gratuita',
-      description: 'Recogemos tus paneles sin costo alguno.',
+      title: 'Recolección Gestionada',
+      description: 'Nos encargamos de la logística de recolección.',
     },
     {
       icon: <Recycle className="text-primary-400" size={24} />,
@@ -25,7 +25,7 @@ export default function DonarPage() {
 
   const steps = [
     { number: '01', title: 'Solicita', description: 'Llena el formulario con tus datos' },
-    { number: '02', title: 'Confirmamos', description: 'Te contactamos en 24-48 hrs' },
+    { number: '02', title: 'Confirmamos', description: 'Te enviamos una propuesta en 24-48 hrs' },
     { number: '03', title: 'Recolectamos', description: 'Pasamos por tus paneles' },
     { number: '04', title: 'Reciclamos', description: 'Transformamos los materiales' },
   ];
@@ -38,7 +38,7 @@ export default function DonarPage() {
         <div className="absolute top-1/2 left-1/4 w-96 h-96 bg-primary-500/10 rounded-full blur-3xl" />
         
         <div className="relative z-10 max-w-6xl mx-auto">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
+          <div className="grid lg:grid-cols-2 gap-12 items-start">
             {/* Left: Info */}
             <motion.div
               initial={{ opacity: 0, x: -20 }}
@@ -57,7 +57,7 @@ export default function DonarPage() {
               
               <p className="text-lg text-dark-300 mb-8">
                 Cada panel solar en desuso contiene materiales valiosos que pueden tener 
-                una segunda vida. Solicita la recolección gratuita y sé parte del cambio.
+                una segunda vida. Solicita la recolección y sé parte del cambio.
               </p>
 
               {/* Benefits */}
@@ -161,8 +161,8 @@ export default function DonarPage() {
             </div>
             <div className="flex flex-col items-center">
               <CheckCircle className="text-primary-400 mb-3" size={32} />
-              <p className="text-2xl font-bold text-white">2,500+</p>
-              <p className="text-dark-400 text-sm">Paneles procesados</p>
+              <p className="text-2xl font-bold text-white">2,000 ton</p>
+              <p className="text-dark-400 text-sm">Capacidad anual de reciclaje</p>
             </div>
           </div>
         </div>

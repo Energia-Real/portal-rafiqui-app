@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Inter, Space_Grotesk } from "next/font/google";
 import "./globals.css";
 import { Navbar } from "@/components/layout/Navbar";
-import { RoleSwitcher } from "@/components/ui/RoleSwitcher";
+import { AdminGuard } from "@/components/layout/AdminGuard";
 
 const inter = Inter({ 
   subsets: ["latin"],
@@ -33,11 +33,12 @@ export default function RootLayout({
   return (
     <html lang="es" className="dark">
       <body className={`${inter.variable} ${spaceGrotesk.variable} font-sans`}>
-        <Navbar />
-        <main className="pt-16 min-h-screen">
-          {children}
-        </main>
-        <RoleSwitcher />
+        <AdminGuard>
+          <Navbar />
+          <main className="pt-16 min-h-screen">
+            {children}
+          </main>
+        </AdminGuard>
       </body>
     </html>
   );
