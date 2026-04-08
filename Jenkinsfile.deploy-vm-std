@@ -6,8 +6,8 @@ pipeline {
         IMAGE_NAME = "portal-rafiqui-app"
         TAG = "${env.BUILD_NUMBER}"
         SSH_CRED_ID = "vm-target-ssh-key" 
-        TARGET_VM_IP = "YOUR_STD_VM_PUBLIC_IP"
-        TARGET_VM_PRIVATE_IP = "YOUR_STD_VM_PRIVATE_IP"
+        TARGET_VM_IP = "172.200.56.176"      // Public IP for SSH access from Jenkins
+        TARGET_VM_PRIVATE_IP = "172.16.2.4"  // Private IP for container binding (subdomain mapping)
         ENVIRONMENT = "prod"
         APP_PORT = "3010"
     }
@@ -24,9 +24,8 @@ pipeline {
             }
         }
 
-        stage('Checkout & Build') {
+        stage('Build') {
             steps {
-                git branch: 'main', url: 'https://github.com/your-org/portal-rafiqui-app.git'
                 sh 'npm ci'
                 sh 'npm run build'
                 sh 'npm run lint'
