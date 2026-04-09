@@ -10,6 +10,7 @@ pipeline {
         TARGET_VM_PRIVATE_IP = "172.16.2.4"  // Private IP for container binding (subdomain mapping)
         ENVIRONMENT = "prod"
         APP_PORT = "3010"
+        API_URL = "https://cloud.energiareal.mx/rafiqui-api"
     }
     
     stages {
@@ -56,27 +57,30 @@ pipeline {
                         sh "ssh-keygen -f '/var/jenkins_home/.ssh/known_hosts' -R '${TARGET_VM_IP}' || true"
                         
                         sh """
-        ssh -o StrictHostKeyChecking=no azureuser@${TARGET_VM_IP} '
-            az login --identity --client-id \$(cat /etc/azure-identity-client-id)
-            az acr login --name eracr
+            # Copy .env file to VM first
+            scp -o StrictHostKeyChecking=no "${ENV_FILE}" azureuser@${TARGET_VM_IP}:"/tmp/.env-${IMAGE_NAME}-${ENVIRONMENT}"
             
-            # Stop and remove existing container
-            docker stop ${IMAGE_NAME}-${ENVIRONMENT} || true
-            docker rm ${IMAGE_NAME}-${ENVIRONMENT} || true
-            
-            # Create .env file from uploaded file
-            cp ${ENV_FILE} .env-${IMAGE_NAME}-${ENVIRONMENT}
-            
-            # Deploy container
-            docker run -d \\
-                --name ${IMAGE_NAME}-${ENVIRONMENT} \\
-                --restart unless-stopped \\
-                -p ${TARGET_VM_PRIVATE_IP}:${APP_PORT}:3000 \\
-                --env-file .env-${IMAGE_NAME}-${ENVIRONMENT} \\
-                ${ACR_URL}/${IMAGE_NAME}:latest
+            ssh -o StrictHostKeyChecking=no azureuser@${TARGET_VM_IP} '
+                az login --identity
+                az acr login --name eracr
                 
-            docker image prune -f
-        '
+                # Pull latest image
+                docker pull ${ACR_URL}/${IMAGE_NAME}:latest
+
+                # Stop and remove existing container
+                docker stop ${IMAGE_NAME}-${ENVIRONMENT} || true
+                docker rm ${IMAGE_NAME}-${ENVIRONMENT} || true
+
+                # Deploy container
+                docker run -d \\
+                    --name ${IMAGE_NAME}-${ENVIRONMENT} \\
+                    --restart unless-stopped \\
+                    -p ${TARGET_VM_PRIVATE_IP}:${APP_PORT}:3000 \\
+                    --env-file "/tmp/.env-${IMAGE_NAME}-${ENVIRONMENT}" \\
+                    ${ACR_URL}/${IMAGE_NAME}:latest
+                    
+                docker image prune -f
+            '
         """
                     }
                 }
@@ -96,7 +100,7 @@ pipeline {
                         ).trim()
                         
                         def appHealth = sh(
-                            script: "ssh -o StrictHostKeyChecking=no azureuser@${TARGET_VM_IP} \"curl -f http://localhost:${APP_PORT} || echo 'FAILED'\"",
+                            script: "ssh -o StrictHostKeyChecking=no azureuser@${TARGET_VM_IP} \"curl -f http://${TARGET_VM_PRIVATE_IP}:${APP_PORT} || echo 'FAILED'\"",
                             returnStdout: true
                         ).trim()
                         
@@ -108,6 +112,7 @@ pipeline {
                         
                         echo "✅ Portal Rafiqui App deployed successfully!"
                         echo "🌐 App: http://${TARGET_VM_PRIVATE_IP}:${APP_PORT}"
+                        echo "🌐 Production: https://dona.rafiqui.ac"
                     }
                 }
             }
@@ -118,6 +123,7 @@ pipeline {
         success { 
             echo "¡Despliegue exitoso de Portal Rafiqui App!" 
             echo "🌐 App: http://${TARGET_VM_PRIVATE_IP}:${APP_PORT}"
+            echo "🌐 Production: https://dona.rafiqui.ac"
         }
         failure { 
             echo "Error en el pipeline de Portal Rafiqui App." 
