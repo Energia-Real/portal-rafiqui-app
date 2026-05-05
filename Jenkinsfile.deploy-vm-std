@@ -59,12 +59,13 @@ pipeline {
                         
                         sh """
             # Copy .env file to VM first
+            ssh -o StrictHostKeyChecking=no azureuser@${TARGET_VM_IP} "rm -f /tmp/.env-${IMAGE_NAME}-${ENVIRONMENT}" || true
             scp -o StrictHostKeyChecking=no "${ENV_FILE}" azureuser@${TARGET_VM_IP}:"/tmp/.env-${IMAGE_NAME}-${ENVIRONMENT}"
-            
+
             ssh -o StrictHostKeyChecking=no azureuser@${TARGET_VM_IP} '
                 az login --identity
                 az acr login --name eracr
-                
+
                 # Pull latest image
                 docker pull ${ACR_URL}/${IMAGE_NAME}:latest
 
@@ -73,13 +74,13 @@ pipeline {
                 docker rm ${IMAGE_NAME}-${ENVIRONMENT} || true
 
                 # Deploy container
-                docker run -d \\
-                    --name ${IMAGE_NAME}-${ENVIRONMENT} \\
-                    --restart unless-stopped \\
-                    -p ${TARGET_VM_PRIVATE_IP}:${APP_PORT}:3000 \\
-                    --env-file "/tmp/.env-${IMAGE_NAME}-${ENVIRONMENT}" \\
+                docker run -d \
+                    --name ${IMAGE_NAME}-${ENVIRONMENT} \
+                    --restart unless-stopped \
+                    -p ${TARGET_VM_PRIVATE_IP}:${APP_PORT}:3000 \
+                    --env-file "/tmp/.env-${IMAGE_NAME}-${ENVIRONMENT}" \
                     ${ACR_URL}/${IMAGE_NAME}:latest
-                    
+
                 docker image prune -f
             '
         """
