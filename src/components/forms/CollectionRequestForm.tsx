@@ -120,7 +120,7 @@ export function CollectionRequestForm() {
   const [colonias, setColonias] = useState<string[]>([]);
   const [municipios, setMunicipios] = useState<string[]>([]);
   const [isLoadingPostalCode, setIsLoadingPostalCode] = useState(false);
-  const [postalCodeError, setPostalCodeError] = useState<string>('');
+  const [postalCodeNotFound, setPostalCodeNotFound] = useState(false);
   
   const [brands, setBrands] = useState<string[]>([]);
   const [modelsByBrand, setModelsByBrand] = useState<Record<string, SolarPanelModel[]>>({});
@@ -215,16 +215,16 @@ export function CollectionRequestForm() {
       setColonias([]);
       setMunicipios([]);
       setFormData(prev => ({ ...prev, colonia: '', municipio: '', estado: '' }));
-      setPostalCodeError('');
+      setPostalCodeNotFound(false);
       return;
     }
 
     setIsLoadingPostalCode(true);
-    setPostalCodeError('');
 
     const data = await fetchPostalCodeData(postalCode);
 
     if (data) {
+      setPostalCodeNotFound(false);
       setColonias(data.colonias);
       setMunicipios(data.municipios);
       setFormData(prev => ({
@@ -244,7 +244,7 @@ export function CollectionRequestForm() {
       setColonias([]);
       setMunicipios([]);
       setFormData(prev => ({ ...prev, colonia: '', municipio: '', estado: '' }));
-      setPostalCodeError('Código postal no encontrado');
+      setPostalCodeNotFound(true);
     }
 
     setIsLoadingPostalCode(false);
@@ -550,12 +550,12 @@ export function CollectionRequestForm() {
               </span>
             )}
           </div>
-          {(errors.postalCode || postalCodeError) && (
-            <p className="text-red-500 text-xs mt-1 ml-1">{errors.postalCode || postalCodeError}</p>
+          {errors.postalCode && (
+            <p className="text-red-500 text-xs mt-1 ml-1">{errors.postalCode}</p>
           )}
         </div>
 
-        {/* 2. Estado (auto-filled) */}
+        {/* 2. Estado (auto-filled o manual si CP inválido) */}
         <div>
           <label className="block text-sm font-medium text-dark-300 mb-2">
             Estado
@@ -564,9 +564,11 @@ export function CollectionRequestForm() {
             type="text"
             name="estado"
             value={formData.estado}
-            readOnly
-            placeholder="Se llenará automáticamente"
-            className={`input-field bg-dark-700/50 cursor-not-allowed ${errors.estado ? 'border-red-500' : ''}`}
+            onChange={handleChange}
+            onBlur={() => handleBlur('estado')}
+            readOnly={!postalCodeNotFound}
+            placeholder={postalCodeNotFound ? 'Ingresa el estado' : 'Se llenará automáticamente'}
+            className={`input-field ${!postalCodeNotFound ? 'bg-dark-700/50 cursor-not-allowed' : ''} ${errors.estado ? 'border-red-500' : ''}`}
           />
           {errors.estado && (
             <p className="text-red-500 text-xs mt-1 ml-1">{errors.estado}</p>
@@ -578,7 +580,17 @@ export function CollectionRequestForm() {
           <label className="block text-sm font-medium text-dark-300 mb-2">
             Alcaldía / Municipio
           </label>
-          {municipios.length > 1 ? (
+          {postalCodeNotFound ? (
+            <input
+              type="text"
+              name="municipio"
+              value={formData.municipio}
+              onChange={handleChange}
+              onBlur={() => handleBlur('municipio')}
+              placeholder="Ingresa la alcaldía o municipio"
+              className={`input-field ${errors.municipio ? 'border-red-500' : ''}`}
+            />
+          ) : municipios.length > 1 ? (
             <div className="relative">
               <select
                 name="municipio"
@@ -610,28 +622,40 @@ export function CollectionRequestForm() {
           )}
         </div>
 
-        {/* 4. Colonia Select */}
+        {/* 4. Colonia */}
         <div>
           <label className="block text-sm font-medium text-dark-300 mb-2">
             Colonia
           </label>
-          <div className="relative">
-            <select
+          {postalCodeNotFound ? (
+            <input
+              type="text"
               name="colonia"
               value={formData.colonia}
               onChange={handleChange}
-              disabled={colonias.length === 0}
-              className={`input-field appearance-none pr-10 ${errors.colonia ? 'border-red-500 focus:border-red-500' : ''} ${colonias.length === 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
-            >
-              <option value="">Selecciona una colonia</option>
-              {colonias.map((colonia) => (
-                <option key={colonia} value={colonia}>
-                  {colonia}
-                </option>
-              ))}
-            </select>
-            <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-dark-400 pointer-events-none" size={20} />
-          </div>
+              onBlur={() => handleBlur('colonia')}
+              placeholder="Ingresa la colonia"
+              className={`input-field ${errors.colonia ? 'border-red-500' : ''}`}
+            />
+          ) : (
+            <div className="relative">
+              <select
+                name="colonia"
+                value={formData.colonia}
+                onChange={handleChange}
+                disabled={colonias.length === 0}
+                className={`input-field appearance-none pr-10 ${errors.colonia ? 'border-red-500 focus:border-red-500' : ''} ${colonias.length === 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
+              >
+                <option value="">Selecciona una colonia</option>
+                {colonias.map((colonia) => (
+                  <option key={colonia} value={colonia}>
+                    {colonia}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-dark-400 pointer-events-none" size={20} />
+            </div>
+          )}
           {errors.colonia && (
             <p className="text-red-500 text-xs mt-1 ml-1">{errors.colonia}</p>
           )}
